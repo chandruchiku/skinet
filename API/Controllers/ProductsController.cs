@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using API.Dtos;
 using API.Errors;
@@ -7,10 +6,8 @@ using AutoMapper;
 using Core.Entities;
 using Core.Interfaces;
 using Core.Specifications;
-using Infrastructure.Data;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace API.Controllers
 {
@@ -32,12 +29,10 @@ namespace API.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IReadOnlyList<ProductToReturnDto>>> GetProductsAsync()
+        public async Task<ActionResult<IReadOnlyList<ProductToReturnDto>>> GetProductsAsync
+            (string sort, int? brandId, int? typeId )
         { 
-            // Video 39 - I have made modification not to create the class
-            var spec = new BaseSpecification<Product>();
-            spec.AddInclude(x => x.ProductType);
-            spec.AddInclude(x => x.ProductBrand);
+            var spec = new ProductsWithTypesAndBrandsSpecification(sort, brandId, typeId);
 
             var products = await _productRepo.ListAsync(spec);
 
@@ -50,9 +45,7 @@ namespace API.Controllers
         [ProducesResponseType(typeof(ApiResponse), StatusCodes.Status404NotFound)]
         public async Task<ActionResult<ProductToReturnDto>> GetProductAsync(int id)
         {
-             var spec = new BaseSpecification<Product>(x => x.Id == id);
-            spec.AddInclude(x => x.ProductType);
-            spec.AddInclude(x => x.ProductBrand); 
+            var spec = new ProductsWithTypesAndBrandsSpecification(id); 
 
             var product = await _productRepo.GetEntityWithSpec(spec);
 
